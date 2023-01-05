@@ -15,7 +15,7 @@ public class GreetingController {
     MessageRepo messageRepo;
 
     @GetMapping("/")
-    public String greeting(Map<String, Object> model) {
+    public String greeting() {
         return "greeting";
     }
 
@@ -46,6 +46,4 @@ public class GreetingController {
         model.put("messages", messages);
         return "main";
     }
-
-
 }

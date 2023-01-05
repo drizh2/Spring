@@ -24,8 +24,8 @@ public class WebSecurityConfig {
                 )
                 .formLogin((form) -> form
                         .loginPage("/login")
+                        .defaultSuccessUrl("/main", true)
                         .permitAll()
-                        .defaultSuccessUrl("/main")
                 )
                 .logout(LogoutConfigurer::permitAll);
 
@@ -36,8 +36,8 @@ public class WebSecurityConfig {
     public UserDetailsService userDetailsService() {
         UserDetails user =
                 User.withDefaultPasswordEncoder()
-                        .username("u")
-                        .password("p")
+                        .username("user")
+                        .password("password")
                         .roles("USER")
                         .build();
 
