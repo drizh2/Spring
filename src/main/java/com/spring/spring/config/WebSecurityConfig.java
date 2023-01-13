@@ -2,6 +2,7 @@ package com.spring.spring.config;
 
 import com.spring.spring.service.CustomAuthenticationProvider;
 import com.spring.spring.service.CustomPasswordEncoder;
+import com.spring.spring.service.UserService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -11,8 +12,6 @@ import org.springframework.security.config.annotation.web.configuration.EnableWe
 import org.springframework.security.config.annotation.web.configurers.LogoutConfigurer;
 import org.springframework.security.web.SecurityFilterChain;
 
-import javax.sql.DataSource;
-
 @Configuration
 @EnableWebSecurity
 public class WebSecurityConfig {
@@ -21,18 +20,15 @@ public class WebSecurityConfig {
     private CustomAuthenticationProvider authenticationProvider;
 
     @Autowired
-    private DataSource dataSource;
-
-    @Autowired
     private CustomPasswordEncoder customPasswordEncoder;
 
     @Autowired
+    private UserService userService;
+
+    @Autowired
     public void authenticationProvider(AuthenticationManagerBuilder auth) throws Exception {
-        auth.jdbcAuthentication()
-                .dataSource(dataSource)
-                .passwordEncoder(customPasswordEncoder.getPasswordEncoder())
-                .usersByUsernameQuery("SELECT username, password, active FROM usr WHERE username=?")
-                .authoritiesByUsernameQuery("SELECT u.username, ur.roles FROM usr u INNER JOIN user_role ur ON u.id = ur.user_id WHERE u.username=?");
+        auth.userDetailsService(userService)
+                .passwordEncoder(customPasswordEncoder.getPasswordEncoder());
 
     }
 
