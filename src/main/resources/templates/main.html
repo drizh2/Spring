@@ -18,8 +18,8 @@
         </div>
 
         <div>
-            <form method="post" th:action="@{/filter}">
-                <input type="text" th:name="filter" />
+            <form method="get" th:action="@{/main}">
+                <input type="text" th:name="filter" th:value="${filter}" />
                 <button type="submit">Submit</button>
             </form>
         </div>
