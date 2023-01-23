@@ -11,7 +11,7 @@ public class CustomPasswordEncoder {
 
     public PasswordEncoder getPasswordEncoder() {
 //        return PasswordEncoderFactories.createDelegatingPasswordEncoder();
-        return NoOpPasswordEncoder.getInstance();
-//        return new BCryptPasswordEncoder();
+//        return NoOpPasswordEncoder.getInstance();
+        return new BCryptPasswordEncoder(8);
     }
 }

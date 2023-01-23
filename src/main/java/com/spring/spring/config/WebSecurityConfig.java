@@ -12,6 +12,7 @@ import org.springframework.security.config.annotation.method.configuration.Enabl
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.config.annotation.web.configurers.LogoutConfigurer;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
 
 @Configuration
@@ -23,7 +24,7 @@ public class WebSecurityConfig {
     private CustomAuthenticationProvider authenticationProvider;
 
     @Autowired
-    private CustomPasswordEncoder customPasswordEncoder;
+    private CustomPasswordEncoder passwordEncoder;
 
     @Autowired
     private UserService userService;
@@ -31,7 +32,7 @@ public class WebSecurityConfig {
     @Autowired
     public void authenticationProvider(AuthenticationManagerBuilder auth) throws Exception {
         auth.userDetailsService(userService)
-                .passwordEncoder(customPasswordEncoder.getPasswordEncoder());
+                .passwordEncoder(passwordEncoder.getPasswordEncoder());
 
     }
 
@@ -42,10 +43,18 @@ public class WebSecurityConfig {
                         .requestMatchers("/", "/registration", "/static/**", "/activate/*", "/user/profile").permitAll()
                         .anyRequest().authenticated()
                 )
-                .formLogin((form) -> form
-                        .loginPage("/login")
-                        .defaultSuccessUrl("/main", true)
-                        .permitAll()
+                .formLogin((form) -> {
+                            try {
+                                form
+                                            .loginPage("/login")
+                                            .defaultSuccessUrl("/main", true)
+                                            .permitAll()
+                                        .and()
+                                            .rememberMe();
+                            } catch (Exception e) {
+                                throw new RuntimeException(e);
+                            }
+                        }
                 )
                 .logout(LogoutConfigurer::permitAll);
 

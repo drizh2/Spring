@@ -1,6 +1,8 @@
 package com.spring.spring.domain;
 
 import jakarta.persistence.*;
+import jakarta.validation.constraints.NotBlank;
+import org.hibernate.validator.constraints.Length;
 
 @Entity
 public class Message {
@@ -8,7 +10,11 @@ public class Message {
     @GeneratedValue(strategy= GenerationType.AUTO)
     private Long id;
 
+    @NotBlank(message = "Please enter the text!")
+    @Length(max = 2048, message = "Message is too long!")
     private String text;
+    @NotBlank(message = "Please enter the tag!")
+    @Length(max = 255, message = "Tag is too long!")
     private String tag;
 
     @ManyToOne(fetch = FetchType.EAGER)

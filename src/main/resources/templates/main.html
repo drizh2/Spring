@@ -58,13 +58,15 @@
         <button class="btn btn-outline-primary ml-3 mt-2" type="button" data-toggle="collapse" data-target="#collapseExample" aria-expanded="false" aria-controls="collapseExample">
             Add new Message
         </button>
-        <div class="collapse ml-3" id="collapseExample">
+        <div class="collapse ml-3" th:classappend="${message != null}?'show':''" id="collapseExample">
         <form class="mt-2" method="post" th:action="@{/main}" enctype="multipart/form-data">
             <div class="form-group">
-                <input type="text" th:name="text" class="form-control" id="exampleInputEmail1" aria-describedby="emailHelp" placeholder="text">
+                <input type="text" th:name="text" class="form-control" th:classappend="${textError != null}?'is-invalid':''" th:value="${message != null}?${message.text}" id="exampleInputEmail1" aria-describedby="emailHelp" placeholder="text">
+                <div th:if="${textError != null}" class="invalid-feedback" th:utext="${textError}"/>
             </div>
             <div class="form-group">
-                <input type="text" th:name="tag" class="form-control" id="exampleInputPassword1" placeholder="tag">
+                <input type="text" th:name="tag" class="form-control" th:classappend="${tagError != null}?'is-invalid':''" th:value="${message != null}?${message.tag}" id="exampleInputPassword1" placeholder="tag">
+                <div th:if="${tagError != null}" class="invalid-feedback" th:utext="${tagError}"/>
             </div>
             <div class="form-group">
                 <label for="exampleFormControlFile1">Choose the file</label>
