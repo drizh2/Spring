@@ -22,6 +22,11 @@
                     <li class="nav-item">
                         <a class="nav-link" href="/main">Messages</a>
                     </li>
+                    <div sec:authorize="hasAuthority('USER')" >
+                        <li class="nav-item">
+                            <a class="nav-link" href="/user-messages/" th:attrappend="href=${#authentication.getPrincipal().getId()}">My Messages</a>
+                        </li>
+                    </div>
                     <div sec:authorize="hasAuthority('ADMIN')" >
                         <li class="nav-item">
                             <a class="nav-link" href="/user">ADMIN PAGE</a>
@@ -72,6 +77,7 @@
                 <label for="exampleFormControlFile1">Choose the file</label>
                 <input type="file" name="file" class="form-control-file" id="exampleFormControlFile1">
             </div>
+            <input type="hidden" name="id" th:value="${message?.id}" />
             <button type="submit" class="btn btn-outline-success">Submit</button>
         </form>
         </div>
@@ -85,10 +91,14 @@
                     </div>
                     <div class="m-2">
                         <span th:text="${message.text}"></span>
-                        <i th:text="${message.tag}"></i>
+                        <br/>
+                        <i th:text="'#' + ${message.tag}"></i>
                     </div>
                     <div class="card-footer text-muted">
-                        <strong th:text="${message.getAuthorName()}"></strong>
+                        <a th:href="'/user-messages/' + ${message.author.id}">
+                            <strong th:text="${message.getAuthorName()}"></strong>
+                        </a>
+                        <a th:if="${message.author.id == #authentication.getPrincipal().getId()}" class="btn btn-info" th:href="'/user-messages/' + ${message.author.id} + '?message=' + ${message.id}">Edit</a>
                     </div>
                 </div>
             </div>

@@ -20,6 +20,11 @@
                 <li class="nav-item">
                     <a class="nav-link" href="/main">Messages</a>
                 </li>
+                <div sec:authorize="hasAuthority('USER')" >
+                    <li class="nav-item">
+                        <a class="nav-link" href="/user-messages/" th:attrappend="href=${#authentication.getPrincipal().getId()}">My Messages</a>
+                    </li>
+                </div>
                 <div sec:authorize="hasAuthority('ADMIN')" >
                     <li class="nav-item">
                         <a class="nav-link" href="/user">ADMIN PAGE</a>
