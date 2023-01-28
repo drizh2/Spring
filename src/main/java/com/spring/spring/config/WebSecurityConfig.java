@@ -1,28 +1,26 @@
 package com.spring.spring.config;
 
-import com.spring.spring.service.CustomAuthenticationProvider;
+import com.spring.spring.domain.User;
 import com.spring.spring.service.CustomPasswordEncoder;
 import com.spring.spring.service.UserService;
+import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.security.config.annotation.authentication.builders.AuthenticationManagerBuilder;
-import org.springframework.security.config.annotation.authentication.configuration.EnableGlobalAuthentication;
 import org.springframework.security.config.annotation.method.configuration.EnableGlobalMethodSecurity;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.config.annotation.web.configurers.LogoutConfigurer;
-import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
+import org.springframework.ui.Model;
+import org.springframework.validation.BindingResult;
+import org.springframework.web.bind.annotation.RequestParam;
 
 @Configuration
 @EnableWebSecurity
 @EnableGlobalMethodSecurity(prePostEnabled = true)
 public class WebSecurityConfig {
-
-    @Autowired
-    private CustomAuthenticationProvider authenticationProvider;
-
     @Autowired
     private CustomPasswordEncoder passwordEncoder;
 
@@ -33,7 +31,6 @@ public class WebSecurityConfig {
     public void authenticationProvider(AuthenticationManagerBuilder auth) throws Exception {
         auth.userDetailsService(userService)
                 .passwordEncoder(passwordEncoder.getPasswordEncoder());
-
     }
 
     @Bean

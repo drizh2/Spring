@@ -1,10 +1,10 @@
 <!DOCTYPE html>
 <html lang="en" xmlns="http://www.w3.org/1999/xhtml" xmlns:th="http://www.thymeleaf.org" xmlns:sec="http://www.w3.org/1999/xhtml">
     <head>
-        <meta charset="UTF-8">
+        <meta charset="UTF-8"/>
         <title>User Messages</title>
-        <link rel="stylesheet" href="/static/style.css">
-        <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@4.1.3/dist/css/bootstrap.min.css" integrity="sha384-MCw98/SFnGE8fJT3GXwEOngsV7Zt27NXFoaoApmYm81iuXoPkFOJwJ8ERdknLPMO" crossorigin="anonymous">
+        <link rel="stylesheet" href="/static/style.css"/>
+        <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@4.1.3/dist/css/bootstrap.min.css" integrity="sha384-MCw98/SFnGE8fJT3GXwEOngsV7Zt27NXFoaoApmYm81iuXoPkFOJwJ8ERdknLPMO" crossorigin="anonymous"/>
     </head>
     <body>
         <nav class="navbar navbar-expand-lg navbar-light bg-light">
@@ -50,23 +50,55 @@
             </div>
         </nav>
 
+        <div th:text="${userChannel.username}"></div>
+
+        <div th:if="${!isCurrentUser}">
+            <a class="btn btn-outline-danger" th:if="${isSubscriber}" th:href="'/user/unsubscribe/' + ${userChannel.id}">Unsubscribe</a>
+            <a class="btn btn-outline-success" th:unless="${isSubscriber}" th:href="'/user/subscribe/' + ${userChannel.id}">Subscribe</a>
+        </div>
+
+        <div class="container my-3">
+            <div class="row">
+                <div class="col">
+                    <div class="card">
+                        <div class="card-body">
+                            <div class="card-title">Subscriptions</div>
+                            <h3 class="card-text">
+                                <a th:href="'/user/subscriptions/' + ${userChannel.id} + '/list'" th:text="${subscriptionsCount}"></a>
+                            </h3>
+                        </div>
+                    </div>
+                </div>
+                <div class="col">
+                    <div class="card">
+                        <div class="card-body">
+                            <div class="card-title">Subscribers</div>
+                            <h3 class="card-text">
+                                <a th:href="'/user/subscribers/' + ${userChannel.id} + '/list'" th:text="${subscribersCount}"></a>
+                            </h3>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
         <div th:if="${isCurrentUser}">
             <button class="btn btn-outline-primary ml-3 mt-2" type="button" data-toggle="collapse" data-target="#collapseExample" aria-expanded="false" aria-controls="collapseExample">
-                Add new Message
+                Edit Message
             </button>
             <div class="collapse ml-3" th:classappend="${message != null}?'show':''" id="collapseExample">
                 <form class="mt-2" method="post" th:action="@{/edit}" enctype="multipart/form-data">
                     <div class="form-group">
-                        <input type="text" th:name="text" class="form-control" th:classappend="${textError != null}?'is-invalid':''" th:value="${message != null}?${message.text}" id="exampleInputEmail1" aria-describedby="emailHelp" placeholder="text">
+                        <input type="text" th:name="text" class="form-control" th:classappend="${textError != null}?'is-invalid':''" th:value="${message != null}?${message.text}" id="exampleInputEmail1" aria-describedby="emailHelp" placeholder="text"/>
                         <div th:if="${textError != null}" class="invalid-feedback" th:utext="${textError}"/>
                     </div>
                     <div class="form-group">
-                        <input type="text" th:name="tag" class="form-control" th:classappend="${tagError != null}?'is-invalid':''" th:value="${message != null}?${message.tag}" id="exampleInputPassword1" placeholder="tag">
+                        <input type="text" th:name="tag" class="form-control" th:classappend="${tagError != null}?'is-invalid':''" th:value="${message != null}?${message.tag}" id="exampleInputPassword1" placeholder="tag"/>
                         <div th:if="${tagError != null}" class="invalid-feedback" th:utext="${tagError}"/>
                     </div>
                     <div class="form-group">
                         <label for="exampleFormControlFile1">Choose the file</label>
-                        <input type="file" name="file" class="form-control-file" id="exampleFormControlFile1">
+                        <input type="file" name="file" class="form-control-file" id="exampleFormControlFile1"/>
                     </div>
                     <input type="hidden" name="id" th:value="${message?.id}" />
                     <button type="submit" class="btn btn-outline-success">Submit</button>
@@ -78,7 +110,7 @@
             <div th:each="message : ${messages}">
                 <div class="card my-3" style="width: 18rem;">
                     <div th:if="${message.filename != null}">
-                        <img class="card-img-top" th:src="@{/img/{filename}(filename = ${message.filename})}" alt="Card image cap">
+                        <img class="card-img-top" th:src="@{/img/{filename}(filename = ${message.filename})}" alt="Card image cap"/>
                     </div>
                     <div class="m-2">
                         <span th:text="${message.text}"></span>
@@ -89,7 +121,7 @@
                         <a th:href="'/user-messages/' + ${message.author.id}">
                             <strong th:text="${message.getAuthorName()}"></strong>
                         </a>
-                        <a class="btn btn-info" th:href="'/user-messages/' + ${message.author.id} + '?message=' + ${message.id}">Edit</a>
+                        <a th:if="${message.author.id == #authentication.getPrincipal().getId()}" class="btn btn-info" th:href="'/user-messages/' + ${message.author.id} + '?message=' + ${message.id}">Edit</a>
                     </div>
                 </div>
             </div>
