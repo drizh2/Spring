@@ -1,5 +1,5 @@
-INSERT INTO usr (id, username,password, active)
-VALUES (1, 'admin', 'admin', true);
+INSERT INTO usr (id, username, password, active)
+VALUES (0, 'admin', 'admin', true);
 
 INSERT INTO user_role (user_id, roles)
-VALUES (1, 'ADMIN'), (1, 'USER');
+VALUES (0, 'ADMIN'), (0, 'USER');

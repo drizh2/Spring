@@ -3,30 +3,38 @@ package com.spring.spring.controllers;
 import com.spring.spring.domain.Message;
 import com.spring.spring.domain.User;
 import com.spring.spring.repos.MessageRepo;
+import jakarta.servlet.http.HttpServletRequest;
 import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.boot.Banner;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
+import org.springframework.data.web.PageableDefault;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.validation.BindingResult;
-import org.springframework.validation.FieldError;
-import org.springframework.web.bind.annotation.*;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.multipart.MultipartFile;
 import org.thymeleaf.util.StringUtils;
 
 import java.io.File;
 import java.io.IOException;
-import java.util.Map;
-import java.util.Set;
-import java.util.UUID;
-import java.util.stream.Collectors;
+import java.util.*;
+import java.util.stream.IntStream;
 
 @Controller
 public class MainController {
 
+
     @Autowired
-    MessageRepo messageRepo;
+    private MessageRepo messageRepo;
 
     @Value("${upload.path}")
     private String uploadPath;
@@ -39,16 +47,20 @@ public class MainController {
     @GetMapping("/main")
     public String main(
             @RequestParam(required = false, defaultValue = "") String filter,
-            Model model
-    ) {
+            Model model,
+            @PageableDefault(sort = {  "id" }, direction = Sort.Direction.DESC) Pageable pageable,
+            HttpServletRequest request) {
+        Page<Message> page;
 
-        Iterable<Message> messages = messageRepo.findAll();
         if (filter != null && !filter.isEmpty()) {
-            messages = messageRepo.findByTag(filter);
+            page = messageRepo.findByTag(filter, pageable);
         } else {
-            messages = messageRepo.findAll();
+            page = messageRepo.findAll(pageable);
         }
-        model.addAttribute("messages", messages);
+
+        model.addAttribute("pagination", computePagination(page));
+        model.addAttribute("messages", page);
+        model.addAttribute("page", page);
         model.addAttribute("filter", filter);
 
         return "main";
@@ -60,8 +72,8 @@ public class MainController {
             @Valid Message message,
             BindingResult bindingResult,
             Model model,
-            @RequestParam("file") MultipartFile file
-    ) throws IOException {
+            @RequestParam("file") MultipartFile file,
+            Pageable pageable) throws IOException {
 
         message.setAuthor(user);
 
@@ -77,9 +89,9 @@ public class MainController {
             messageRepo.save(message);
         }
 
-        Iterable<Message> messages = messageRepo.findAll();
+        Page<Message> messages = messageRepo.findAll(pageable);
         model.addAttribute("messages", messages);
-        return "main";
+        return "redirect:/main?page=0&size=5";
     }
 
     private void saveFile(Message message, MultipartFile file) throws IOException {
@@ -135,5 +147,29 @@ public class MainController {
         }
 
         return "redirect:/user-messages/" + user.getId();
+    }
+
+    static int[] computePagination(Page page) {
+        Integer totalPages=page.getTotalPages();
+        if(totalPages>7) {
+            Integer pageNumber = page.getNumber() + 1;
+            Integer[] head = pageNumber > 4 ? new Integer[]{1, -1} : new Integer[]{1, 2, 3};
+            Integer[] tail = pageNumber < (totalPages - 3) ? new Integer[]{-1, totalPages} : new Integer[]{totalPages - 2, totalPages - 1, totalPages};
+            Integer[] bodyBefore = (pageNumber > 4 && pageNumber < (totalPages - 1)) ? new Integer[]{pageNumber - 2, pageNumber - 1} : new Integer[]{};
+            Integer[] bodyAfter = (pageNumber > 2 && pageNumber < (totalPages - 3)) ? new Integer[]{pageNumber + 1, pageNumber + 2} : new Integer[]{};
+
+            List<Integer> list = new ArrayList<>();
+            Collections.addAll(list, head);
+            Collections.addAll(list, bodyBefore);
+            Collections.addAll(list, (pageNumber > 3 && pageNumber < totalPages - 2) ? new Integer[]{pageNumber} : new Integer[]{});
+            Collections.addAll(list, bodyAfter);
+            Collections.addAll(list, tail);
+            Integer[] arr = list.toArray(new Integer[0]);
+            int[] res = Arrays.stream(arr).mapToInt(Integer::intValue).toArray();
+            return res;
+        } else {
+            return IntStream.rangeClosed(1, totalPages).toArray();
+        }
+
     }
 }
