@@ -2,7 +2,9 @@ package com.spring.spring.controllers;
 
 import com.spring.spring.domain.Message;
 import com.spring.spring.domain.User;
+import com.spring.spring.domain.dto.MessageDto;
 import com.spring.spring.repos.MessageRepo;
+import com.spring.spring.service.MessageService;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -17,11 +19,12 @@ import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.validation.BindingResult;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
+import org.springframework.web.servlet.mvc.support.RedirectAttributes;
+import org.springframework.web.util.UriBuilder;
+import org.springframework.web.util.UriComponents;
+import org.springframework.web.util.UriComponentsBuilder;
 import org.thymeleaf.util.StringUtils;
 
 import java.io.File;
@@ -31,7 +34,8 @@ import java.util.stream.IntStream;
 
 @Controller
 public class MainController {
-
+    @Autowired
+    private MessageService messageService;
 
     @Autowired
     private MessageRepo messageRepo;
@@ -46,17 +50,12 @@ public class MainController {
 
     @GetMapping("/main")
     public String main(
+            @AuthenticationPrincipal User user,
             @RequestParam(required = false, defaultValue = "") String filter,
             Model model,
             @PageableDefault(sort = {  "id" }, direction = Sort.Direction.DESC) Pageable pageable,
             HttpServletRequest request) {
-        Page<Message> page;
-
-        if (filter != null && !filter.isEmpty()) {
-            page = messageRepo.findByTag(filter, pageable);
-        } else {
-            page = messageRepo.findAll(pageable);
-        }
+        Page<MessageDto> page = messageService.messageList(pageable, filter, user);
 
         model.addAttribute("pagination", computePagination(page));
         model.addAttribute("messages", page);
@@ -89,7 +88,7 @@ public class MainController {
             messageRepo.save(message);
         }
 
-        Page<Message> messages = messageRepo.findAll(pageable);
+        Iterable<Message> messages = messageRepo.findAll();
         model.addAttribute("messages", messages);
         return "redirect:/main?page=0&size=5";
     }
@@ -115,8 +114,9 @@ public class MainController {
             @AuthenticationPrincipal User currentUser,
             @PathVariable User user,
             Model model,
-            @RequestParam(required = false) Message message) {
-        Set<Message> userMessages = user.getMessages();
+            @RequestParam(required = false) Message message,
+            @PageableDefault(sort = {  "id" }, direction = Sort.Direction.DESC) Pageable pageable) {
+        Page<MessageDto> userMessages = messageService.messageListForUser(pageable, currentUser, user);
 
         model.addAttribute("isSubscriber", user.getSubscribers().contains(currentUser));
         model.addAttribute("subscriptionsCount", user.getSubscriptions().size());
@@ -149,6 +149,25 @@ public class MainController {
         return "redirect:/user-messages/" + user.getId();
     }
 
+    @GetMapping("/messages/{message}/like")
+    public String like(@AuthenticationPrincipal User currentUser,
+                       @PathVariable Message message,
+                       RedirectAttributes redirectAttributes,
+                       @RequestHeader(required = false) String referer) {
+        Set<User> likes = message.getLikes();
+        if (likes.contains(currentUser)) {
+            likes.remove(currentUser);
+        } else {
+            likes.add(currentUser);
+        }
+        UriComponents components = UriComponentsBuilder.fromHttpUrl(referer).build();
+        components.getQueryParams()
+                .entrySet()
+                .forEach(pair -> redirectAttributes.addAttribute(pair.getKey(), pair.getValue()));
+
+        return "redirect:" + components.getPath();
+    }
+
     static int[] computePagination(Page page) {
         Integer totalPages=page.getTotalPages();
         if(totalPages>7) {
@@ -170,6 +189,5 @@ public class MainController {
         } else {
             return IntStream.rangeClosed(1, totalPages).toArray();
         }
-
     }
 }
